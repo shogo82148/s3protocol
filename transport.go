@@ -23,6 +23,23 @@ func NewTransport(c client.ConfigProvider) *Transport {
 
 // RoundTrip implements http.RoundTripper.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	switch req.Method {
+	case http.MethodGet:
+		return t.getObject(req)
+	}
+	return &http.Response{
+		Status:     "405 Method Not Allowed",
+		StatusCode: http.StatusMethodNotAllowed,
+		Proto:      "HTTP/1.0",
+		ProtoMajor: 1,
+		ProtoMinor: 0,
+		Header:     make(http.Header),
+		Body:       http.NoBody,
+		Close:      true,
+	}, nil
+}
+
+func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	host := req.Host
 	if host == "" {
 		host = req.URL.Host
