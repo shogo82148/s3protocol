@@ -34,7 +34,8 @@ func TestRoundTrip(t *testing.T) {
 				t.Errorf("unexpected version id: want %q, got %q", "footbar", aws.StringValue(in.VersionId))
 			}
 			return &s3.GetObjectOutput{
-				Body: ioutil.NopCloser(strings.NewReader("Hello S3!")),
+				ContentType: aws.String("plain/text"),
+				Body:        ioutil.NopCloser(strings.NewReader("Hello S3!")),
 			}, nil
 		},
 	}
@@ -56,6 +57,9 @@ func TestRoundTrip(t *testing.T) {
 	}
 	if string(got) != "Hello S3!" {
 		t.Errorf("want Hello S3!, got %s", string(got))
+	}
+	if resp.Header.Get("Content-Type") != "plain/text" {
+		t.Errorf("want %s, got %s", "plain/text", resp.Header.Get("Content-Type"))
 	}
 }
 
@@ -88,6 +92,9 @@ func TestRoundTrip_HEAD(t *testing.T) {
 	}
 	if string(got) != "" {
 		t.Errorf(`want "", got %q`, string(got))
+	}
+	if resp.Header.Get("Content-Type") != "image/png" {
+		t.Errorf("want %s, got %s", "image/png", resp.Header.Get("Content-Type"))
 	}
 }
 

@@ -62,8 +62,10 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	header := make(http.Header)
-	header.Set("Content-Type", aws.StringValue(out.ContentType))
+	header, err := makeHeaderFromGetObjectOutput(out)
+	if err != nil {
+		return nil, err
+	}
 	return &http.Response{
 		Status:        "200 OK",
 		StatusCode:    http.StatusOK,
@@ -96,8 +98,10 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	header := make(http.Header)
-	header.Set("Content-Type", aws.StringValue(out.ContentType))
+	header, err := makeHeaderFromHeadObjectOutput(out)
+	if err != nil {
+		return nil, err
+	}
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,

@@ -62,6 +62,12 @@ func (g *Generator) generate() error {
 	if err := g.generateInput(s3.HeadObjectInput{}); err != nil {
 		return err
 	}
+	if err := g.generateOutput(s3.GetObjectOutput{}); err != nil {
+		return err
+	}
+	if err := g.generateOutput(s3.HeadObjectOutput{}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -123,7 +129,44 @@ func (g *Generator) generateInput(target interface{}) error {
 		}
 		g.Printf("}\n")
 	}
-	g.Printf("return &in, nil\n}\n")
+	g.Printf("return &in, nil\n}\n\n")
+	return nil
+}
+
+func (g *Generator) generateOutput(target interface{}) error {
+	typ := reflect.TypeOf(target)
+	name := typ.Name()
+
+	g.Printf("func makeHeaderFrom%[1]s(out *s3.%[1]s) (http.Header, error) {\n", name)
+	g.Printf("header := make(http.Header)\n")
+	num := typ.NumField()
+	for i := 0; i < num; i++ {
+		f := typ.Field(i)
+		tag := f.Tag
+		if tag.Get("location") != "header" {
+			continue
+		}
+		name := textproto.CanonicalMIMEHeaderKey(tag.Get("locationName"))
+		g.Printf("if out.%s != nil {\n", f.Name)
+		switch f.Type.Elem().Kind() {
+		case reflect.Bool:
+			g.Printf("header.Set(%q, strconv.FormatBool(aws.BoolValue(out.%s)))\n", name, f.Name)
+		case reflect.String:
+			g.Printf("header.Set(%q, aws.StringValue(out.%s))\n", name, f.Name)
+		case reflect.Int64:
+			g.Printf("header.Set(%q, strconv.FormatInt(aws.Int64Value(out.%s), 10))\n", name, f.Name)
+		case reflect.Struct:
+			if f.Type.Elem() == typeTime {
+				g.Printf("header.Set(%q, out.%s.Format(http.TimeFormat))\n", name, f.Name)
+			} else {
+				return fmt.Errorf("unknown type: %v", f.Type.Elem())
+			}
+		default:
+			return fmt.Errorf("unknown type: %v", f.Type.Elem())
+		}
+		g.Printf("}\n")
+	}
+	g.Printf("return header, nil\n}\n\n")
 	return nil
 }
 

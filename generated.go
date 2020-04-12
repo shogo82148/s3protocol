@@ -91,6 +91,7 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	}
 	return &in, nil
 }
+
 func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 	var in s3.HeadObjectInput
 	header := req.Header
@@ -147,4 +148,182 @@ func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 		in.VersionId = aws.String(v[0])
 	}
 	return &in, nil
+}
+
+func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) (http.Header, error) {
+	header := make(http.Header)
+	if out.AcceptRanges != nil {
+		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
+	}
+	if out.CacheControl != nil {
+		header.Set("Cache-Control", aws.StringValue(out.CacheControl))
+	}
+	if out.ContentDisposition != nil {
+		header.Set("Content-Disposition", aws.StringValue(out.ContentDisposition))
+	}
+	if out.ContentEncoding != nil {
+		header.Set("Content-Encoding", aws.StringValue(out.ContentEncoding))
+	}
+	if out.ContentLanguage != nil {
+		header.Set("Content-Language", aws.StringValue(out.ContentLanguage))
+	}
+	if out.ContentLength != nil {
+		header.Set("Content-Length", strconv.FormatInt(aws.Int64Value(out.ContentLength), 10))
+	}
+	if out.ContentRange != nil {
+		header.Set("Content-Range", aws.StringValue(out.ContentRange))
+	}
+	if out.ContentType != nil {
+		header.Set("Content-Type", aws.StringValue(out.ContentType))
+	}
+	if out.DeleteMarker != nil {
+		header.Set("X-Amz-Delete-Marker", strconv.FormatBool(aws.BoolValue(out.DeleteMarker)))
+	}
+	if out.ETag != nil {
+		header.Set("Etag", aws.StringValue(out.ETag))
+	}
+	if out.Expiration != nil {
+		header.Set("X-Amz-Expiration", aws.StringValue(out.Expiration))
+	}
+	if out.Expires != nil {
+		header.Set("Expires", aws.StringValue(out.Expires))
+	}
+	if out.LastModified != nil {
+		header.Set("Last-Modified", out.LastModified.Format(http.TimeFormat))
+	}
+	if out.MissingMeta != nil {
+		header.Set("X-Amz-Missing-Meta", strconv.FormatInt(aws.Int64Value(out.MissingMeta), 10))
+	}
+	if out.ObjectLockLegalHoldStatus != nil {
+		header.Set("X-Amz-Object-Lock-Legal-Hold", aws.StringValue(out.ObjectLockLegalHoldStatus))
+	}
+	if out.ObjectLockMode != nil {
+		header.Set("X-Amz-Object-Lock-Mode", aws.StringValue(out.ObjectLockMode))
+	}
+	if out.ObjectLockRetainUntilDate != nil {
+		header.Set("X-Amz-Object-Lock-Retain-Until-Date", out.ObjectLockRetainUntilDate.Format(http.TimeFormat))
+	}
+	if out.PartsCount != nil {
+		header.Set("X-Amz-Mp-Parts-Count", strconv.FormatInt(aws.Int64Value(out.PartsCount), 10))
+	}
+	if out.ReplicationStatus != nil {
+		header.Set("X-Amz-Replication-Status", aws.StringValue(out.ReplicationStatus))
+	}
+	if out.RequestCharged != nil {
+		header.Set("X-Amz-Request-Charged", aws.StringValue(out.RequestCharged))
+	}
+	if out.Restore != nil {
+		header.Set("X-Amz-Restore", aws.StringValue(out.Restore))
+	}
+	if out.SSECustomerAlgorithm != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Customer-Algorithm", aws.StringValue(out.SSECustomerAlgorithm))
+	}
+	if out.SSECustomerKeyMD5 != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Customer-Key-Md5", aws.StringValue(out.SSECustomerKeyMD5))
+	}
+	if out.SSEKMSKeyId != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Aws-Kms-Key-Id", aws.StringValue(out.SSEKMSKeyId))
+	}
+	if out.ServerSideEncryption != nil {
+		header.Set("X-Amz-Server-Side-Encryption", aws.StringValue(out.ServerSideEncryption))
+	}
+	if out.StorageClass != nil {
+		header.Set("X-Amz-Storage-Class", aws.StringValue(out.StorageClass))
+	}
+	if out.TagCount != nil {
+		header.Set("X-Amz-Tagging-Count", strconv.FormatInt(aws.Int64Value(out.TagCount), 10))
+	}
+	if out.VersionId != nil {
+		header.Set("X-Amz-Version-Id", aws.StringValue(out.VersionId))
+	}
+	if out.WebsiteRedirectLocation != nil {
+		header.Set("X-Amz-Website-Redirect-Location", aws.StringValue(out.WebsiteRedirectLocation))
+	}
+	return header, nil
+}
+
+func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) (http.Header, error) {
+	header := make(http.Header)
+	if out.AcceptRanges != nil {
+		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
+	}
+	if out.CacheControl != nil {
+		header.Set("Cache-Control", aws.StringValue(out.CacheControl))
+	}
+	if out.ContentDisposition != nil {
+		header.Set("Content-Disposition", aws.StringValue(out.ContentDisposition))
+	}
+	if out.ContentEncoding != nil {
+		header.Set("Content-Encoding", aws.StringValue(out.ContentEncoding))
+	}
+	if out.ContentLanguage != nil {
+		header.Set("Content-Language", aws.StringValue(out.ContentLanguage))
+	}
+	if out.ContentLength != nil {
+		header.Set("Content-Length", strconv.FormatInt(aws.Int64Value(out.ContentLength), 10))
+	}
+	if out.ContentType != nil {
+		header.Set("Content-Type", aws.StringValue(out.ContentType))
+	}
+	if out.DeleteMarker != nil {
+		header.Set("X-Amz-Delete-Marker", strconv.FormatBool(aws.BoolValue(out.DeleteMarker)))
+	}
+	if out.ETag != nil {
+		header.Set("Etag", aws.StringValue(out.ETag))
+	}
+	if out.Expiration != nil {
+		header.Set("X-Amz-Expiration", aws.StringValue(out.Expiration))
+	}
+	if out.Expires != nil {
+		header.Set("Expires", aws.StringValue(out.Expires))
+	}
+	if out.LastModified != nil {
+		header.Set("Last-Modified", out.LastModified.Format(http.TimeFormat))
+	}
+	if out.MissingMeta != nil {
+		header.Set("X-Amz-Missing-Meta", strconv.FormatInt(aws.Int64Value(out.MissingMeta), 10))
+	}
+	if out.ObjectLockLegalHoldStatus != nil {
+		header.Set("X-Amz-Object-Lock-Legal-Hold", aws.StringValue(out.ObjectLockLegalHoldStatus))
+	}
+	if out.ObjectLockMode != nil {
+		header.Set("X-Amz-Object-Lock-Mode", aws.StringValue(out.ObjectLockMode))
+	}
+	if out.ObjectLockRetainUntilDate != nil {
+		header.Set("X-Amz-Object-Lock-Retain-Until-Date", out.ObjectLockRetainUntilDate.Format(http.TimeFormat))
+	}
+	if out.PartsCount != nil {
+		header.Set("X-Amz-Mp-Parts-Count", strconv.FormatInt(aws.Int64Value(out.PartsCount), 10))
+	}
+	if out.ReplicationStatus != nil {
+		header.Set("X-Amz-Replication-Status", aws.StringValue(out.ReplicationStatus))
+	}
+	if out.RequestCharged != nil {
+		header.Set("X-Amz-Request-Charged", aws.StringValue(out.RequestCharged))
+	}
+	if out.Restore != nil {
+		header.Set("X-Amz-Restore", aws.StringValue(out.Restore))
+	}
+	if out.SSECustomerAlgorithm != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Customer-Algorithm", aws.StringValue(out.SSECustomerAlgorithm))
+	}
+	if out.SSECustomerKeyMD5 != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Customer-Key-Md5", aws.StringValue(out.SSECustomerKeyMD5))
+	}
+	if out.SSEKMSKeyId != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Aws-Kms-Key-Id", aws.StringValue(out.SSEKMSKeyId))
+	}
+	if out.ServerSideEncryption != nil {
+		header.Set("X-Amz-Server-Side-Encryption", aws.StringValue(out.ServerSideEncryption))
+	}
+	if out.StorageClass != nil {
+		header.Set("X-Amz-Storage-Class", aws.StringValue(out.StorageClass))
+	}
+	if out.VersionId != nil {
+		header.Set("X-Amz-Version-Id", aws.StringValue(out.VersionId))
+	}
+	if out.WebsiteRedirectLocation != nil {
+		header.Set("X-Amz-Website-Redirect-Location", aws.StringValue(out.WebsiteRedirectLocation))
+	}
+	return header, nil
 }
