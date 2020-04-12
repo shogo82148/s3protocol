@@ -30,6 +30,9 @@ func (mock *s3mock) HeadObjectWithContext(ctx context.Context, in *s3.HeadObject
 func TestRoundTrip(t *testing.T) {
 	mock := &s3mock{
 		getObjectWithContext: func(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
+			if aws.StringValue(in.VersionId) != "foobar" {
+				t.Errorf("unexpected version id: want %q, got %q", "footbar", aws.StringValue(in.VersionId))
+			}
 			return &s3.GetObjectOutput{
 				Body: ioutil.NopCloser(strings.NewReader("Hello S3!")),
 			}, nil
@@ -59,6 +62,9 @@ func TestRoundTrip(t *testing.T) {
 func TestRoundTrip_HEAD(t *testing.T) {
 	mock := &s3mock{
 		headObjectWithContext: func(ctx context.Context, in *s3.HeadObjectInput, _ ...request.Option) (*s3.HeadObjectOutput, error) {
+			if aws.StringValue(in.VersionId) != "foobar" {
+				t.Errorf("unexpected version id: want %q, got %q", "footbar", aws.StringValue(in.VersionId))
+			}
 			return &s3.HeadObjectOutput{
 				ContentType: aws.String("image/png"),
 			}, nil

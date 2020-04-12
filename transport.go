@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
+//go:generate go run codegen.go
+
 // Transport serving the S3 objects.
 type Transport struct {
 	S3 s3iface.S3API
@@ -48,11 +50,14 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	}
 	path := req.URL.Path
 
+	in, err := newGetObjectInput(req)
+	if err != nil {
+		return nil, err
+	}
+	in.Bucket = &host
+	in.Key = &path
 	ctx := req.Context()
-	out, err := t.S3.GetObjectWithContext(ctx, &s3.GetObjectInput{
-		Bucket: &host,
-		Key:    &path,
-	})
+	out, err := t.S3.GetObjectWithContext(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -79,11 +84,14 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	}
 	path := req.URL.Path
 
+	in, err := newHeadObjectInput(req)
+	if err != nil {
+		return nil, err
+	}
+	in.Bucket = &host
+	in.Key = &path
 	ctx := req.Context()
-	out, err := t.S3.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
-		Bucket: &host,
-		Key:    &path,
-	})
+	out, err := t.S3.HeadObjectWithContext(ctx, in)
 	if err != nil {
 		return nil, err
 	}
