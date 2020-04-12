@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -14,11 +15,16 @@ import (
 
 type s3mock struct {
 	s3iface.S3API
-	getObjectWithContext func(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error)
+	getObjectWithContext  func(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error)
+	headObjectWithContext func(ctx context.Context, in *s3.HeadObjectInput, _ ...request.Option) (*s3.HeadObjectOutput, error)
 }
 
 func (mock *s3mock) GetObjectWithContext(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
 	return mock.getObjectWithContext(ctx, in)
+}
+
+func (mock *s3mock) HeadObjectWithContext(ctx context.Context, in *s3.HeadObjectInput, _ ...request.Option) (*s3.HeadObjectOutput, error) {
+	return mock.headObjectWithContext(ctx, in)
 }
 
 func TestRoundTrip(t *testing.T) {
@@ -47,6 +53,35 @@ func TestRoundTrip(t *testing.T) {
 	}
 	if string(got) != "Hello S3!" {
 		t.Errorf("want Hello S3!, got %s", string(got))
+	}
+}
+
+func TestRoundTrip_HEAD(t *testing.T) {
+	mock := &s3mock{
+		headObjectWithContext: func(ctx context.Context, in *s3.HeadObjectInput, _ ...request.Option) (*s3.HeadObjectOutput, error) {
+			return &s3.HeadObjectOutput{
+				ContentType: aws.String("image/png"),
+			}, nil
+		},
+	}
+	tr := &http.Transport{}
+	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	c := &http.Client{Transport: tr}
+	resp, err := c.Head("s3://bucket-name/object-key?versionId=foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("unexpected status: want %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	got, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "" {
+		t.Errorf(`want "", got %q`, string(got))
 	}
 }
 

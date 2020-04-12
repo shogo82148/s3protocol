@@ -26,6 +26,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	switch req.Method {
 	case http.MethodGet:
 		return t.getObject(req)
+	case http.MethodHead:
+		return t.headObject(req)
 	}
 	return &http.Response{
 		Status:     "405 Method Not Allowed",
@@ -67,5 +69,35 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 		Body:          out.Body,
 		ContentLength: aws.Int64Value(out.ContentLength),
 		Close:         true,
+	}, nil
+}
+
+func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
+	host := req.Host
+	if host == "" {
+		host = req.URL.Host
+	}
+	path := req.URL.Path
+
+	ctx := req.Context()
+	out, err := t.S3.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
+		Bucket: &host,
+		Key:    &path,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	header := make(http.Header)
+	header.Set("Content-Type", aws.StringValue(out.ContentType))
+	return &http.Response{
+		Status:     "200 OK",
+		StatusCode: http.StatusOK,
+		Proto:      "HTTP/1.0",
+		ProtoMajor: 1,
+		ProtoMinor: 0,
+		Header:     header,
+		Body:       http.NoBody,
+		Close:      true,
 	}, nil
 }
