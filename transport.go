@@ -2,6 +2,7 @@ package s3protocol
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -48,7 +49,7 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	if host == "" {
 		host = req.URL.Host
 	}
-	path := req.URL.Path
+	path := strings.TrimPrefix(req.URL.Path, "/")
 
 	in, err := newGetObjectInput(req)
 	if err != nil {
@@ -84,7 +85,7 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	if host == "" {
 		host = req.URL.Host
 	}
-	path := req.URL.Path
+	path := strings.TrimPrefix(req.URL.Path, "/")
 
 	in, err := newHeadObjectInput(req)
 	if err != nil {
