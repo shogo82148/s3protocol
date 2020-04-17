@@ -22,7 +22,7 @@ func ExampleNewTransport() {
 	t.RegisterProtocol("s3", s3)
 	c := &http.Client{Transport: t}
 
-	resp, err := c.Get("s3://shogo82148-jis0208/product-.py")
+	resp, err := c.Get("s3://shogo82148-jis0208/product.py")
 	if err != nil {
 		panic(err)
 	}
