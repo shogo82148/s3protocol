@@ -114,7 +114,7 @@ func (g *Generator) generateInput(target interface{}) error {
 		case reflect.Struct:
 			if f.Type.Elem() == typeTime {
 				g.Printf(`t, err := http.ParseTime(v[0])
-				if err != nil {
+				if err == nil {
 					in.%s = aws.Time(t)
 				}
 				`, f.Name)

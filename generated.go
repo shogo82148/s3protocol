@@ -26,7 +26,7 @@ func newGetObjectInput(req *http.Request) *s3.GetObjectInput {
 	}
 	if v, ok := header["If-Modified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
-		if err != nil {
+		if err == nil {
 			in.IfModifiedSince = aws.Time(t)
 		}
 	}
@@ -35,7 +35,7 @@ func newGetObjectInput(req *http.Request) *s3.GetObjectInput {
 	}
 	if v, ok := header["If-Unmodified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
-		if err != nil {
+		if err == nil {
 			in.IfUnmodifiedSince = aws.Time(t)
 		}
 	}
@@ -68,7 +68,7 @@ func newGetObjectInput(req *http.Request) *s3.GetObjectInput {
 	}
 	if v, ok := query["response-expires"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
-		if err != nil {
+		if err == nil {
 			in.ResponseExpires = aws.Time(t)
 		}
 	}
@@ -102,7 +102,7 @@ func newHeadObjectInput(req *http.Request) *s3.HeadObjectInput {
 	}
 	if v, ok := header["If-Modified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
-		if err != nil {
+		if err == nil {
 			in.IfModifiedSince = aws.Time(t)
 		}
 	}
@@ -111,7 +111,7 @@ func newHeadObjectInput(req *http.Request) *s3.HeadObjectInput {
 	}
 	if v, ok := header["If-Unmodified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
-		if err != nil {
+		if err == nil {
 			in.IfUnmodifiedSince = aws.Time(t)
 		}
 	}
