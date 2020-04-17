@@ -179,7 +179,6 @@ func TestRoundTrip_NotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("If-Modified-Since", "Wed, 21 Oct 2015 07:28:00 GMT")
 	resp, err := c.Do(req)
 	if err != nil {
 		t.Fatal(err)
