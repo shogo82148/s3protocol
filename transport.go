@@ -53,10 +53,7 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	}
 	path := strings.TrimPrefix(req.URL.Path, "/")
 
-	in, err := newGetObjectInput(req)
-	if err != nil {
-		return nil, err
-	}
+	in := newGetObjectInput(req)
 	in.Bucket = &host
 	in.Key = &path
 	ctx := req.Context()
@@ -65,10 +62,7 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 		return handleError(err)
 	}
 
-	header, err := makeHeaderFromGetObjectOutput(out)
-	if err != nil {
-		return nil, err
-	}
+	header := makeHeaderFromGetObjectOutput(out)
 	return &http.Response{
 		Status:        "200 OK",
 		StatusCode:    http.StatusOK,
@@ -89,10 +83,7 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	}
 	path := strings.TrimPrefix(req.URL.Path, "/")
 
-	in, err := newHeadObjectInput(req)
-	if err != nil {
-		return nil, err
-	}
+	in := newHeadObjectInput(req)
 	in.Bucket = &host
 	in.Key = &path
 	ctx := req.Context()
@@ -101,10 +92,7 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 		return handleError(err)
 	}
 
-	header, err := makeHeaderFromHeadObjectOutput(out)
-	if err != nil {
-		return nil, err
-	}
+	header := makeHeaderFromHeadObjectOutput(out)
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,

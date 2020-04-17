@@ -47,7 +47,6 @@ func (g *Generator) generate() error {
 	package s3protocol
 	
 	import (
-		"fmt"
 		"net/http"
 		"net/url"
 		"strconv"
@@ -77,7 +76,7 @@ func (g *Generator) generateInput(target interface{}) error {
 	typ := reflect.TypeOf(target)
 	name := typ.Name()
 
-	g.Printf("func new%s(req *http.Request) (*s3.%s, error) {\n", name, name)
+	g.Printf("func new%s(req *http.Request) *s3.%s {\n", name, name)
 	g.Printf("var in s3.%s\n", name)
 	g.Printf(`header := req.Header
 	if header == nil {
@@ -85,7 +84,7 @@ func (g *Generator) generateInput(target interface{}) error {
 	}
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
-		return nil, err
+		query = make(url.Values)
 	}
 	`)
 	num := typ.NumField()
@@ -108,19 +107,17 @@ func (g *Generator) generateInput(target interface{}) error {
 			g.Printf("in.%s = aws.String(v[0])\n", f.Name)
 		case reflect.Int64:
 			g.Printf(`i, err := strconv.ParseInt(v[0], 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("s3protocol: failed to parse %s: %%v", err)
+			if err == nil {
+				in.%s = aws.Int64(i)
 			}
-			in.%s = aws.Int64(i)
-			`, name, f.Name)
+			`, f.Name)
 		case reflect.Struct:
 			if f.Type.Elem() == typeTime {
 				g.Printf(`t, err := http.ParseTime(v[0])
 				if err != nil {
-					return nil, fmt.Errorf("s3protocol: failed to parse %s: %%v", err)
+					in.%s = aws.Time(t)
 				}
-				in.%s = aws.Time(t)
-				`, name, f.Name)
+				`, f.Name)
 			} else {
 				return fmt.Errorf("unknown type: %v", f.Type.Elem())
 			}
@@ -129,7 +126,7 @@ func (g *Generator) generateInput(target interface{}) error {
 		}
 		g.Printf("}\n")
 	}
-	g.Printf("return &in, nil\n}\n\n")
+	g.Printf("return &in\n}\n\n")
 	return nil
 }
 
@@ -137,7 +134,7 @@ func (g *Generator) generateOutput(target interface{}) error {
 	typ := reflect.TypeOf(target)
 	name := typ.Name()
 
-	g.Printf("func makeHeaderFrom%[1]s(out *s3.%[1]s) (http.Header, error) {\n", name)
+	g.Printf("func makeHeaderFrom%[1]s(out *s3.%[1]s) http.Header {\n", name)
 	g.Printf("header := make(http.Header)\n")
 	num := typ.NumField()
 	for i := 0; i < num; i++ {
@@ -166,7 +163,7 @@ func (g *Generator) generateOutput(target interface{}) error {
 		}
 		g.Printf("}\n")
 	}
-	g.Printf("return header, nil\n}\n\n")
+	g.Printf("return header\n}\n\n")
 	return nil
 }
 

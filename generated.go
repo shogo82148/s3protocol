@@ -3,7 +3,6 @@
 package s3protocol
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
+func newGetObjectInput(req *http.Request) *s3.GetObjectInput {
 	var in s3.GetObjectInput
 	header := req.Header
 	if header == nil {
@@ -20,7 +19,7 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	}
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
-		return nil, err
+		query = make(url.Values)
 	}
 	if v, ok := header["If-Match"]; ok && len(v) > 0 {
 		in.IfMatch = aws.String(v[0])
@@ -28,9 +27,8 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	if v, ok := header["If-Modified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
 		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse If-Modified-Since: %v", err)
+			in.IfModifiedSince = aws.Time(t)
 		}
-		in.IfModifiedSince = aws.Time(t)
 	}
 	if v, ok := header["If-None-Match"]; ok && len(v) > 0 {
 		in.IfNoneMatch = aws.String(v[0])
@@ -38,16 +36,14 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	if v, ok := header["If-Unmodified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
 		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse If-Unmodified-Since: %v", err)
+			in.IfUnmodifiedSince = aws.Time(t)
 		}
-		in.IfUnmodifiedSince = aws.Time(t)
 	}
 	if v, ok := query["partNumber"]; ok && len(v) > 0 {
 		i, err := strconv.ParseInt(v[0], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse partNumber: %v", err)
+		if err == nil {
+			in.PartNumber = aws.Int64(i)
 		}
-		in.PartNumber = aws.Int64(i)
 	}
 	if v, ok := header["Range"]; ok && len(v) > 0 {
 		in.Range = aws.String(v[0])
@@ -73,9 +69,8 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	if v, ok := query["response-expires"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
 		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse response-expires: %v", err)
+			in.ResponseExpires = aws.Time(t)
 		}
-		in.ResponseExpires = aws.Time(t)
 	}
 	if v, ok := header["X-Amz-Server-Side-Encryption-Customer-Algorithm"]; ok && len(v) > 0 {
 		in.SSECustomerAlgorithm = aws.String(v[0])
@@ -89,10 +84,10 @@ func newGetObjectInput(req *http.Request) (*s3.GetObjectInput, error) {
 	if v, ok := query["versionId"]; ok && len(v) > 0 {
 		in.VersionId = aws.String(v[0])
 	}
-	return &in, nil
+	return &in
 }
 
-func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
+func newHeadObjectInput(req *http.Request) *s3.HeadObjectInput {
 	var in s3.HeadObjectInput
 	header := req.Header
 	if header == nil {
@@ -100,7 +95,7 @@ func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 	}
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
-		return nil, err
+		query = make(url.Values)
 	}
 	if v, ok := header["If-Match"]; ok && len(v) > 0 {
 		in.IfMatch = aws.String(v[0])
@@ -108,9 +103,8 @@ func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 	if v, ok := header["If-Modified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
 		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse If-Modified-Since: %v", err)
+			in.IfModifiedSince = aws.Time(t)
 		}
-		in.IfModifiedSince = aws.Time(t)
 	}
 	if v, ok := header["If-None-Match"]; ok && len(v) > 0 {
 		in.IfNoneMatch = aws.String(v[0])
@@ -118,16 +112,14 @@ func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 	if v, ok := header["If-Unmodified-Since"]; ok && len(v) > 0 {
 		t, err := http.ParseTime(v[0])
 		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse If-Unmodified-Since: %v", err)
+			in.IfUnmodifiedSince = aws.Time(t)
 		}
-		in.IfUnmodifiedSince = aws.Time(t)
 	}
 	if v, ok := query["partNumber"]; ok && len(v) > 0 {
 		i, err := strconv.ParseInt(v[0], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("s3protocol: failed to parse partNumber: %v", err)
+		if err == nil {
+			in.PartNumber = aws.Int64(i)
 		}
-		in.PartNumber = aws.Int64(i)
 	}
 	if v, ok := header["Range"]; ok && len(v) > 0 {
 		in.Range = aws.String(v[0])
@@ -147,10 +139,10 @@ func newHeadObjectInput(req *http.Request) (*s3.HeadObjectInput, error) {
 	if v, ok := query["versionId"]; ok && len(v) > 0 {
 		in.VersionId = aws.String(v[0])
 	}
-	return &in, nil
+	return &in
 }
 
-func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) (http.Header, error) {
+func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) http.Header {
 	header := make(http.Header)
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
@@ -239,10 +231,10 @@ func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) (http.Header, error)
 	if out.WebsiteRedirectLocation != nil {
 		header.Set("X-Amz-Website-Redirect-Location", aws.StringValue(out.WebsiteRedirectLocation))
 	}
-	return header, nil
+	return header
 }
 
-func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) (http.Header, error) {
+func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) http.Header {
 	header := make(http.Header)
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
@@ -325,5 +317,5 @@ func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) (http.Header, erro
 	if out.WebsiteRedirectLocation != nil {
 		header.Set("X-Amz-Website-Redirect-Location", aws.StringValue(out.WebsiteRedirectLocation))
 	}
-	return header, nil
+	return header
 }
