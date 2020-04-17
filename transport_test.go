@@ -2,6 +2,7 @@ package s3protocol
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -160,5 +162,38 @@ func TestRoundTrip_StatusMethodNotAllowed(t *testing.T) {
 	}
 	if string(got) != "" {
 		t.Errorf(`want "", got %q`, string(got))
+	}
+}
+
+func TestRoundTrip_NotFound(t *testing.T) {
+	mock := &s3mock{
+		getObjectWithContext: func(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
+			aerr := awserr.New("not found", "not found", errors.New("not found"))
+			return nil, awserr.NewRequestFailure(aerr, http.StatusNotFound, "request-id")
+		},
+	}
+	tr := &http.Transport{}
+	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	c := &http.Client{Transport: tr}
+	req, err := http.NewRequest(http.MethodGet, "s3://bucket-name/object-key?versionId=foobar&partNumber=1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("If-Modified-Since", "Wed, 21 Oct 2015 07:28:00 GMT")
+	resp, err := c.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("unexpected status: want %d, got %d", http.StatusNotFound, resp.StatusCode)
+	}
+	got, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "" {
+		t.Errorf("want %q, got %q", "", string(got))
 	}
 }

@@ -1,10 +1,12 @@
 package s3protocol
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -60,7 +62,7 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	ctx := req.Context()
 	out, err := t.S3.GetObjectWithContext(ctx, in)
 	if err != nil {
-		return nil, err
+		return handleError(err)
 	}
 
 	header, err := makeHeaderFromGetObjectOutput(out)
@@ -96,7 +98,7 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	ctx := req.Context()
 	out, err := t.S3.HeadObjectWithContext(ctx, in)
 	if err != nil {
-		return nil, err
+		return handleError(err)
 	}
 
 	header, err := makeHeaderFromHeadObjectOutput(out)
@@ -113,4 +115,42 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 		Body:       http.NoBody,
 		Close:      true,
 	}, nil
+}
+
+func handleError(err error) (*http.Response, error) {
+	if err, ok := awsRequestFailure(err); ok {
+		code := err.StatusCode()
+		return &http.Response{
+			Status:     fmt.Sprintf("%d %s", code, http.StatusText(code)),
+			StatusCode: code,
+			Proto:      "HTTP/1.0",
+			ProtoMajor: 1,
+			ProtoMinor: 0,
+			Header:     make(http.Header),
+			Body:       http.NoBody,
+			Close:      true,
+		}, nil
+	}
+	return &http.Response{
+		Status:     "500 Internal Server Error",
+		StatusCode: http.StatusInternalServerError,
+		Proto:      "HTTP/1.0",
+		ProtoMajor: 1,
+		ProtoMinor: 0,
+		Header:     make(http.Header),
+		Body:       http.NoBody,
+		Close:      true,
+	}, nil
+}
+
+func awsRequestFailure(err error) (awserr.RequestFailure, bool) {
+	for err != nil {
+		if err, ok := err.(awserr.RequestFailure); ok {
+			return err, true
+		}
+		if aerr, ok := err.(awserr.Error); ok {
+			err = aerr.OrigErr()
+		}
+	}
+	return nil, false
 }
