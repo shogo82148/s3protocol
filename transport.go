@@ -58,11 +58,11 @@ func (t *Transport) getObject(req *http.Request) (*http.Response, error) {
 	in.Key = &path
 	ctx := req.Context()
 	out, err := t.S3.GetObjectWithContext(ctx, in)
+	header := makeHeaderFromGetObjectOutput(out)
 	if err != nil {
-		return handleError(err)
+		return handleError(header, err)
 	}
 
-	header := makeHeaderFromGetObjectOutput(out)
 	return &http.Response{
 		Status:        "200 OK",
 		StatusCode:    http.StatusOK,
@@ -88,11 +88,11 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	in.Key = &path
 	ctx := req.Context()
 	out, err := t.S3.HeadObjectWithContext(ctx, in)
+	header := makeHeaderFromHeadObjectOutput(out)
 	if err != nil {
-		return handleError(err)
+		return handleError(header, err)
 	}
 
-	header := makeHeaderFromHeadObjectOutput(out)
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,
@@ -105,7 +105,10 @@ func (t *Transport) headObject(req *http.Request) (*http.Response, error) {
 	}, nil
 }
 
-func handleError(err error) (*http.Response, error) {
+func handleError(header http.Header, err error) (*http.Response, error) {
+	if header == nil {
+		header = make(http.Header)
+	}
 	if err, ok := awsRequestFailure(err); ok {
 		code := err.StatusCode()
 		return &http.Response{
@@ -114,7 +117,7 @@ func handleError(err error) (*http.Response, error) {
 			Proto:      "HTTP/1.0",
 			ProtoMajor: 1,
 			ProtoMinor: 0,
-			Header:     make(http.Header),
+			Header:     header,
 			Body:       http.NoBody,
 			Close:      true,
 		}, nil
@@ -125,7 +128,7 @@ func handleError(err error) (*http.Response, error) {
 		Proto:      "HTTP/1.0",
 		ProtoMajor: 1,
 		ProtoMinor: 0,
-		Header:     make(http.Header),
+		Header:     header,
 		Body:       http.NoBody,
 		Close:      true,
 	}, nil
