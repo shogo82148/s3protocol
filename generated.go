@@ -144,6 +144,9 @@ func newHeadObjectInput(req *http.Request) *s3.HeadObjectInput {
 
 func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) http.Header {
 	header := make(http.Header)
+	if out == nil {
+		return header
+	}
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
 	}
@@ -236,6 +239,9 @@ func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) http.Header {
 
 func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) http.Header {
 	header := make(http.Header)
+	if out == nil {
+		return header
+	}
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
 	}

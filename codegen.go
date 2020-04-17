@@ -136,6 +136,7 @@ func (g *Generator) generateOutput(target interface{}) error {
 
 	g.Printf("func makeHeaderFrom%[1]s(out *s3.%[1]s) http.Header {\n", name)
 	g.Printf("header := make(http.Header)\n")
+	g.Printf("if out == nil { return header }\n")
 	num := typ.NumField()
 	for i := 0; i < num; i++ {
 		f := typ.Field(i)
