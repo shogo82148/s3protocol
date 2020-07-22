@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  ignore:
+  - dependency-name: github.com/aws/aws-sdk-go
+    versions:
+    - "> 1.33"
+    - "< 1.34"
