@@ -35,9 +35,8 @@ jobs:
       - name: Test and send coverage
         uses: shogo82148/actions-goveralls@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
-          job-number: ${{ strategy.job-index }}
+          flag-name: ${{ matrix.os }}-Go-${{ matrix.go }}
 
   # notifies that all test jobs are finished.
   finish:
@@ -46,5 +45,4 @@ jobs:
     steps:
       - uses: shogo82148/actions-goveralls@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
