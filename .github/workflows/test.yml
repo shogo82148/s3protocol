@@ -6,25 +6,22 @@ on:
   pull_request:
 
 jobs:
-
   test:
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
-          - macos-latest
         go:
-          - "1.12"
-          - "1.13"
-          - "1.14"
           - "1"
+          - "1.15"
+          - "1.14"
+          - "1.13"
+          - "1.12"
 
     name: Test Go ${{ matrix.go }} in ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
-
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v2
         with:
