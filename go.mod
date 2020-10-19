@@ -2,4 +2,4 @@ module github.com/shogo82148/s3protocol
 
 go 1.12
 
-require github.com/aws/aws-sdk-go v1.35.7
+require github.com/aws/aws-sdk-go v1.35.9
