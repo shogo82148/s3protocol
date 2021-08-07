@@ -4,7 +4,6 @@ Package s3protocol provides the http.RoundTripper interface for Amazon S3 (Simpl
 The typical use case is to register the "s3" protocol with a http.Transport, as in:
 
 	s := session.Must(session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
 		Credentials: credentials.AnonymousCredentials,
 	}))
 	s3 := s3protocol.NewTransport(s)
