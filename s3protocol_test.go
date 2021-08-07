@@ -13,7 +13,6 @@ import (
 
 func ExampleNewTransport() {
 	s := session.Must(session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
 		Credentials: credentials.AnonymousCredentials,
 	}))
 	s3 := s3protocol.NewTransport(s)

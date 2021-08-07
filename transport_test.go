@@ -30,6 +30,13 @@ func (mock *s3mock) HeadObjectWithContext(ctx context.Context, in *s3.HeadObject
 	return mock.headObjectWithContext(ctx, in)
 }
 
+func newTestTransport(mock *s3mock, bucket string) *Transport {
+	t := &Transport{}
+	c := &s3api{svc: mock}
+	t.s3.Store(bucket, c)
+	return t
+}
+
 func TestRoundTrip(t *testing.T) {
 	mock := &s3mock{
 		getObjectWithContext: func(ctx context.Context, in *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
@@ -58,7 +65,7 @@ func TestRoundTrip(t *testing.T) {
 		},
 	}
 	tr := &http.Transport{}
-	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	tr.RegisterProtocol("s3", newTestTransport(mock, "bucket-name"))
 	c := &http.Client{Transport: tr}
 	req, err := http.NewRequest(http.MethodGet, "s3://bucket-name/object-key?versionId=foobar&partNumber=1", nil)
 	if err != nil {
@@ -115,7 +122,7 @@ func TestRoundTrip_HEAD(t *testing.T) {
 		},
 	}
 	tr := &http.Transport{}
-	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	tr.RegisterProtocol("s3", newTestTransport(mock, "bucket-name"))
 	c := &http.Client{Transport: tr}
 	resp, err := c.Head("s3://bucket-name/object-key?versionId=foobar")
 	if err != nil {
@@ -145,7 +152,7 @@ func TestRoundTrip_StatusMethodNotAllowed(t *testing.T) {
 		},
 	}
 	tr := &http.Transport{}
-	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	tr.RegisterProtocol("s3", newTestTransport(mock, "bucket-name"))
 	c := &http.Client{Transport: tr}
 	resp, err := c.Post("s3://bucket-name/object-key?versionId=foobar", "application/json", strings.NewReader("{}"))
 	if err != nil {
@@ -173,7 +180,7 @@ func TestRoundTrip_NotFound(t *testing.T) {
 		},
 	}
 	tr := &http.Transport{}
-	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	tr.RegisterProtocol("s3", newTestTransport(mock, "bucket-name"))
 	c := &http.Client{Transport: tr}
 	req, err := http.NewRequest(http.MethodGet, "s3://bucket-name/object-key?versionId=foobar&partNumber=1", nil)
 	if err != nil {
@@ -208,7 +215,7 @@ func TestRoundTrip_NotModified(t *testing.T) {
 		},
 	}
 	tr := &http.Transport{}
-	tr.RegisterProtocol("s3", &Transport{S3: mock})
+	tr.RegisterProtocol("s3", newTestTransport(mock, "bucket-name"))
 	c := &http.Client{Transport: tr}
 	req, err := http.NewRequest(http.MethodGet, "s3://bucket-name/object-key?versionId=foobar&partNumber=1", nil)
 	if err != nil {
