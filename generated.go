@@ -21,6 +21,12 @@ func newGetObjectInput(req *http.Request) *s3.GetObjectInput {
 	if err != nil {
 		query = make(url.Values)
 	}
+	if v, ok := header["X-Amz-Checksum-Mode"]; ok && len(v) > 0 {
+		in.ChecksumMode = aws.String(v[0])
+	}
+	if v, ok := header["X-Amz-Expected-Bucket-Owner"]; ok && len(v) > 0 {
+		in.ExpectedBucketOwner = aws.String(v[0])
+	}
 	if v, ok := header["If-Match"]; ok && len(v) > 0 {
 		in.IfMatch = aws.String(v[0])
 	}
@@ -97,6 +103,12 @@ func newHeadObjectInput(req *http.Request) *s3.HeadObjectInput {
 	if err != nil {
 		query = make(url.Values)
 	}
+	if v, ok := header["X-Amz-Checksum-Mode"]; ok && len(v) > 0 {
+		in.ChecksumMode = aws.String(v[0])
+	}
+	if v, ok := header["X-Amz-Expected-Bucket-Owner"]; ok && len(v) > 0 {
+		in.ExpectedBucketOwner = aws.String(v[0])
+	}
 	if v, ok := header["If-Match"]; ok && len(v) > 0 {
 		in.IfMatch = aws.String(v[0])
 	}
@@ -150,8 +162,23 @@ func makeHeaderFromGetObjectOutput(out *s3.GetObjectOutput) http.Header {
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
 	}
+	if out.BucketKeyEnabled != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Bucket-Key-Enabled", strconv.FormatBool(aws.BoolValue(out.BucketKeyEnabled)))
+	}
 	if out.CacheControl != nil {
 		header.Set("Cache-Control", aws.StringValue(out.CacheControl))
+	}
+	if out.ChecksumCRC32 != nil {
+		header.Set("X-Amz-Checksum-Crc32", aws.StringValue(out.ChecksumCRC32))
+	}
+	if out.ChecksumCRC32C != nil {
+		header.Set("X-Amz-Checksum-Crc32c", aws.StringValue(out.ChecksumCRC32C))
+	}
+	if out.ChecksumSHA1 != nil {
+		header.Set("X-Amz-Checksum-Sha1", aws.StringValue(out.ChecksumSHA1))
+	}
+	if out.ChecksumSHA256 != nil {
+		header.Set("X-Amz-Checksum-Sha256", aws.StringValue(out.ChecksumSHA256))
 	}
 	if out.ContentDisposition != nil {
 		header.Set("Content-Disposition", aws.StringValue(out.ContentDisposition))
@@ -245,8 +272,26 @@ func makeHeaderFromHeadObjectOutput(out *s3.HeadObjectOutput) http.Header {
 	if out.AcceptRanges != nil {
 		header.Set("Accept-Ranges", aws.StringValue(out.AcceptRanges))
 	}
+	if out.ArchiveStatus != nil {
+		header.Set("X-Amz-Archive-Status", aws.StringValue(out.ArchiveStatus))
+	}
+	if out.BucketKeyEnabled != nil {
+		header.Set("X-Amz-Server-Side-Encryption-Bucket-Key-Enabled", strconv.FormatBool(aws.BoolValue(out.BucketKeyEnabled)))
+	}
 	if out.CacheControl != nil {
 		header.Set("Cache-Control", aws.StringValue(out.CacheControl))
+	}
+	if out.ChecksumCRC32 != nil {
+		header.Set("X-Amz-Checksum-Crc32", aws.StringValue(out.ChecksumCRC32))
+	}
+	if out.ChecksumCRC32C != nil {
+		header.Set("X-Amz-Checksum-Crc32c", aws.StringValue(out.ChecksumCRC32C))
+	}
+	if out.ChecksumSHA1 != nil {
+		header.Set("X-Amz-Checksum-Sha1", aws.StringValue(out.ChecksumSHA1))
+	}
+	if out.ChecksumSHA256 != nil {
+		header.Set("X-Amz-Checksum-Sha256", aws.StringValue(out.ChecksumSHA256))
 	}
 	if out.ContentDisposition != nil {
 		header.Set("Content-Disposition", aws.StringValue(out.ContentDisposition))
