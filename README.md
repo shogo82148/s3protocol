@@ -1,5 +1,7 @@
 # s3protocol
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/s3protocol.svg)](https://pkg.go.dev/github.com/shogo82148/s3protocol)
+
 Package s3protocol provides the [http.RoundTripper](https://golang.org/pkg/net/http/#RoundTripper) interface for [Amazon S3 (Simple Storage Service)](https://docs.aws.amazon.com/s3/index.html).
 
 The typical use case is to register the "s3" protocol with a [http.Transport](https://golang.org/pkg/net/http/#Transport), as in:
